@@ -29,6 +29,10 @@ Implements the UITableViewDataSource protocol with a data source and cell factor
 final class AlbumsTableViewDataSource : NSObject, UITableViewDataSource {
     var settings: Settings!
     
+    private var sortedAlbums: [PHAssetCollection] {
+       return albums.sorted { $0.localizedTitle ?? "" < $1.localizedTitle ?? "" }
+    }
+    
     private let albums: [PHAssetCollection]
     private let scale: CGFloat
     private let imageManager = PHCachingImageManager.default()
@@ -40,18 +44,18 @@ final class AlbumsTableViewDataSource : NSObject, UITableViewDataSource {
     }
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        return albums.count > 0 ? 1 : 0
+        return sortedAlbums.count > 0 ? 1 : 0
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return albums.count
+        return sortedAlbums.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: AlbumCell.identifier, for: indexPath) as! AlbumCell
         
         // Fetch album
-        let album = albums[indexPath.row]
+        let album = sortedAlbums[indexPath.row]
         
         // Title
         cell.albumTitleLabel.attributedText = titleForAlbum(album)
@@ -78,7 +82,13 @@ final class AlbumsTableViewDataSource : NSObject, UITableViewDataSource {
     private func titleForAlbum(_ album: PHAssetCollection) -> NSAttributedString {
         let text = NSMutableAttributedString()
 
-        text.append(NSAttributedString(string: album.localizedTitle ?? "", attributes: settings.theme.albumTitleAttributes))
+        var albumTitle = album.localizedTitle ?? ""
+        
+        if albumTitle == "Recents" {
+            albumTitle = "Camera roll"
+        }
+        
+        text.append(NSAttributedString(string: albumTitle, attributes: settings.theme.albumTitleAttributes))
 
         return text
     }

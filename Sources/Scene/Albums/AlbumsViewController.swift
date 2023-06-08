@@ -35,8 +35,29 @@ class AlbumsViewController: UIViewController {
     }
 
     var albums: [PHAssetCollection] = []
+    struct ModifiedAlbum {
+        let album: PHAssetCollection
+        let localizedTitle: String
+    }
     private var sortedAlbums: [PHAssetCollection] {
-       return albums.sorted { $0.localizedTitle ?? "" < $1.localizedTitle ?? "" }
+        var modifiedAlbums: [ModifiedAlbum] = []
+
+            // Find and update albums with localized title "Recents"
+            for album in albums {
+                if album.localizedTitle == "Recents" {
+                    let modifiedAlbum = ModifiedAlbum(album: album, localizedTitle: "Camera Roll")
+                    modifiedAlbums.append(modifiedAlbum)
+                } else {
+                    let modifiedAlbum = ModifiedAlbum(album: album, localizedTitle: album.localizedTitle ?? "")
+                    modifiedAlbums.append(modifiedAlbum)
+                }
+            }
+
+            // Sort alphabetically by localizedTitle
+            modifiedAlbums.sort { ($0.localizedTitle) < ($1.localizedTitle) }
+
+            // Return the original albums without the wrapper
+            return modifiedAlbums.map { $0.album }
     }
     private var dataSource: AlbumsTableViewDataSource?
     private let tableView: UITableView = UITableView(frame: .zero, style: .grouped)

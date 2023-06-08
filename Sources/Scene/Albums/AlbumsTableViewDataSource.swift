@@ -28,10 +28,31 @@ Implements the UITableViewDataSource protocol with a data source and cell factor
 */
 final class AlbumsTableViewDataSource : NSObject, UITableViewDataSource {
     var settings: Settings!
-    
-    private var sortedAlbums: [PHAssetCollection] {
-       return albums.sorted { $0.localizedTitle ?? "" < $1.localizedTitle ?? "" }
+    struct ModifiedAlbum {
+        let album: PHAssetCollection
+        let localizedTitle: String
     }
+    private var sortedAlbums: [PHAssetCollection] {
+        var modifiedAlbums: [ModifiedAlbum] = []
+
+            // Find and update albums with localized title "Recents"
+            for album in albums {
+                if album.localizedTitle == "Recents" {
+                    let modifiedAlbum = ModifiedAlbum(album: album, localizedTitle: "Camera Roll")
+                    modifiedAlbums.append(modifiedAlbum)
+                } else {
+                    let modifiedAlbum = ModifiedAlbum(album: album, localizedTitle: album.localizedTitle ?? "")
+                    modifiedAlbums.append(modifiedAlbum)
+                }
+            }
+
+            // Sort alphabetically by localizedTitle
+            modifiedAlbums.sort { ($0.localizedTitle) < ($1.localizedTitle) }
+
+            // Return the original albums without the wrapper
+            return modifiedAlbums.map { $0.album }
+    }
+
     
     private let albums: [PHAssetCollection]
     private let scale: CGFloat
@@ -53,7 +74,6 @@ final class AlbumsTableViewDataSource : NSObject, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: AlbumCell.identifier, for: indexPath) as! AlbumCell
-        
         // Fetch album
         let album = sortedAlbums[indexPath.row]
         

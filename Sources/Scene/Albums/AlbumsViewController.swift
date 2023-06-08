@@ -35,6 +35,9 @@ class AlbumsViewController: UIViewController {
     }
 
     var albums: [PHAssetCollection] = []
+    private var sortedAlbums: [PHAssetCollection] {
+       return albums.sorted { $0.localizedTitle ?? "" < $1.localizedTitle ?? "" }
+    }
     private var dataSource: AlbumsTableViewDataSource?
     private let tableView: UITableView = UITableView(frame: .zero, style: .grouped)
     private let lineView: UIView = UIView()
@@ -42,7 +45,7 @@ class AlbumsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        dataSource = AlbumsTableViewDataSource(albums: albums)
+        dataSource = AlbumsTableViewDataSource(albums: sortedAlbums)
         dataSource?.settings = settings
 
         tableView.frame = view.bounds
@@ -87,7 +90,7 @@ class AlbumsViewController: UIViewController {
 
 extension AlbumsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let album = albums[indexPath.row]
+        let album = sortedAlbums[indexPath.row]
         delegate?.albumsViewController(self, didSelectAlbum: album)
     }
 
